@@ -177,7 +177,7 @@
  * 기온별 옷차림 (위에서부터, min 이상인 첫 항목 선택)
  * ========================================================= */
 const OUTFITS = [
-  { min: 28,   label: "28℃ 이상", color: "#f2c200", items: ["민소매", "반팔", "반바지", "치마"] },
+  { min: 28,   label: "28℃ 이상", color: "#f2c200", items: ["민소매", "반팔", "반바지"] },
   { min: 23,   label: "23~27℃",  color: "#f5a000", items: ["반팔", "얇은 셔츠", "반바지", "면바지"] },
   { min: 20,   label: "20~22℃",  color: "#f07a1a", items: ["얇은 가디건", "긴팔티", "면바지"] },
   { min: 17,   label: "17~19℃",  color: "#e8502a", items: ["얇은 니트", "가디건", "맨투맨", "얇은 자켓", "면바지"] },
@@ -190,11 +190,11 @@ const OUTFITS = [
 /* 옷 그림: 이모지, 또는 "svg:이름"이면 아래 직접 그린 아이콘 */
 const ICONS = {
   // 상의
-  "민소매": "🎽", "반팔": "👕", "히트텍": "👕", "얇은 셔츠": "👔", "긴팔티": "👚", "맨투맨": "👚",
+  "민소매": "svg:tank", "반팔": "👕", "히트텍": "svg:thermal", "얇은 셔츠": "svg:shirt", "긴팔티": "👚", "맨투맨": "👚",
   // 니트·가디건
   "얇은 가디건": "🧶", "가디건": "🧶", "얇은 니트": "🧶", "니트": "🧶",
-  // 자켓류
-  "얇은 자켓": "🧥", "자켓": "🧥", "야상": "🧥", "트렌치코트": "🧥",
+  // 자켓류 (자켓은 직접 그린 회색 블레이저)
+  "얇은 자켓": "svg:blazer", "자켓": "svg:blazer", "야상": "svg:field", "트렌치코트": "🧥",
   // 코트·패딩 (직접 그린 아이콘)
   "코트": "svg:coat", "두꺼운 코트": "svg:coat", "패딩": "svg:padding",
   // 하의
@@ -203,31 +203,89 @@ const ICONS = {
   "목도리": "🧣", "기모 제품": "🧤",
 };
 const SVG_ICONS = {
-  // 무릎까지 오는 카멜색 코트: 라펠 + 단추
-  coat: `<svg viewBox="0 0 32 32" aria-hidden="true">
-    <path d="M10 5 L5 9 L3 23 L7 24 L9 13 Z" fill="#a8743f"/>
-    <path d="M22 5 L27 9 L29 23 L25 24 L23 13 Z" fill="#a8743f"/>
-    <path d="M10 5 L22 5 L24.5 30 L7.5 30 Z" fill="#c58d55"/>
-    <path d="M13.5 5 L16 11 L18.5 5 Z" fill="#f2e6d6"/>
-    <path d="M10 5 L13.5 5 L16 11 L14.5 16 L11 9 Z" fill="#9c6633"/>
-    <path d="M22 5 L18.5 5 L16 11 L17.5 16 L21 9 Z" fill="#9c6633"/>
-    <line x1="16" y1="16" x2="16" y2="30" stroke="#9c6633" stroke-width="0.8"/>
-    <circle cx="18.2" cy="19" r="1.1" fill="#5b3a1e"/><circle cx="18.2" cy="24" r="1.1" fill="#5b3a1e"/>
-    <circle cx="13.8" cy="19" r="1.1" fill="#5b3a1e"/><circle cx="13.8" cy="24" r="1.1" fill="#5b3a1e"/>
+  // 민소매: 무늬 없는 흰 나시
+  tank: `<svg viewBox="0 0 32 32" aria-hidden="true">
+    <path d="M10.6 4.4 Q11.2 9.4 13.4 10 Q16 10.9 18.6 10 Q20.8 9.4 21.4 4.4 L23.4 4.9 Q22.6 10.6 24.4 13.4 L24.8 28 Q16 29.3 7.2 28 L7.6 13.4 Q9.4 10.6 8.6 4.9 Z"
+          fill="#eef2f7" stroke="#a7b2c1" stroke-width="0.7"/>
   </svg>`,
-  // 남색 숏패딩: 누빔 줄 + 지퍼 + 목 카라
-  padding: `<svg viewBox="0 0 32 32" aria-hidden="true">
-    <rect x="2.5" y="9" width="7" height="17" rx="3.5" fill="#24418f"/>
-    <rect x="22.5" y="9" width="7" height="17" rx="3.5" fill="#24418f"/>
-    <rect x="7" y="6.5" width="18" height="22" rx="4.5" fill="#2f55b5"/>
-    <rect x="10.5" y="3" width="11" height="6" rx="3" fill="#24418f"/>
-    <g stroke="#1b3272" stroke-width="1.2" stroke-linecap="round">
-      <line x1="7.5" y1="12.5" x2="24.5" y2="12.5"/><line x1="7.5" y1="18" x2="24.5" y2="18"/>
-      <line x1="7.5" y1="23.5" x2="24.5" y2="23.5"/>
-      <line x1="3" y1="15" x2="9" y2="15"/><line x1="3" y1="20.5" x2="9" y2="20.5"/>
-      <line x1="23" y1="15" x2="29" y2="15"/><line x1="23" y1="20.5" x2="29" y2="20.5"/>
+  // 셔츠: 하늘색 버튼다운, 넥타이 없음
+  shirt: `<svg viewBox="0 0 32 32" aria-hidden="true">
+    <path d="M10 6.4 L6.4 8.2 L4.4 25 L7.4 25.4 L9.8 12.5 Z" fill="#c4d6ee" stroke="#94aacb" stroke-width="0.6"/>
+    <path d="M22 6.4 L25.6 8.2 L27.6 25 L24.6 25.4 L22.2 12.5 Z" fill="#c4d6ee" stroke="#94aacb" stroke-width="0.6"/>
+    <path d="M10 6 H22 L22.8 27 Q16 28.2 9.2 27 Z" fill="#d9e6f7" stroke="#94aacb" stroke-width="0.6"/>
+    <path d="M16 8.6 V27.6" stroke="#a9bcd8" stroke-width="0.6"/>
+    <g fill="#8197b8"><circle cx="16" cy="12.4" r="0.55"/><circle cx="16" cy="16.4" r="0.55"/><circle cx="16" cy="20.4" r="0.55"/><circle cx="16" cy="24.4" r="0.55"/></g>
+    <path d="M12 5.2 L16 8.6 L13.4 11 L10.8 7 Z" fill="#eef4fc" stroke="#94aacb" stroke-width="0.6"/>
+    <path d="M20 5.2 L16 8.6 L18.6 11 L21.2 7 Z" fill="#eef4fc" stroke="#94aacb" stroke-width="0.6"/>
+  </svg>`,
+  // 히트텍: 몸에 붙는 검은 긴팔 내복
+  thermal: `<svg viewBox="0 0 32 32" aria-hidden="true">
+    <g fill="#25282e" stroke="#5a606b" stroke-width="0.6">
+      <path d="M10.4 6.4 L7.4 8 L5 26 L7.8 26.4 L10.2 12 Z"/>
+      <path d="M21.6 6.4 L24.6 8 L27 26 L24.2 26.4 L21.8 12 Z"/>
+      <path d="M10.4 6 H21.6 L22.2 27.6 H9.8 Z"/>
     </g>
-    <line x1="16" y1="7" x2="16" y2="28.5" stroke="#cfd9f5" stroke-width="1.2"/>
+    <path d="M12.8 6 Q16 9.2 19.2 6" fill="none" stroke="#6b7280" stroke-width="1.1"/>
+    <g stroke="#454a53" stroke-width="0.6">
+      <path d="M10 26 H22"/><path d="M5.2 24.6 L7.9 25"/><path d="M26.8 24.6 L24.1 25"/>
+    </g>
+  </svg>`,
+  // 야상: 연두빛 카키 필드자켓, 스탠드 카라 + 포켓 4개
+  field: `<svg viewBox="0 0 32 32" aria-hidden="true">
+    <path d="M9.6 6.2 L5.4 8.6 L3.6 24 L7 24.6 L9.4 12.4 Z" fill="#748235"/>
+    <path d="M22.4 6.2 L26.6 8.6 L28.4 24 L25 24.6 L22.6 12.4 Z" fill="#748235"/>
+    <path d="M9.6 6 H22.4 L23.4 28 H8.6 Z" fill="#8d9d45"/>
+    <rect x="11" y="3.8" width="10" height="3.8" rx="1.4" fill="#7c8a3a"/>
+    <rect x="8.6" y="26.4" width="14.8" height="1.6" fill="#7c8a3a"/>
+    <g fill="#83933f" stroke="#5f6c2b" stroke-width="0.5">
+      <rect x="10.4" y="10.6" width="4" height="3.8" rx="0.4"/><rect x="17.6" y="10.6" width="4" height="3.8" rx="0.4"/>
+      <rect x="10" y="18.6" width="4.6" height="5.2" rx="0.4"/><rect x="17.4" y="18.6" width="4.6" height="5.2" rx="0.4"/>
+    </g>
+    <g stroke="#5f6c2b" stroke-width="0.5"><path d="M10.4 11.8 H14.4"/><path d="M17.6 11.8 H21.6"/><path d="M10 20 H14.6"/><path d="M17.4 20 H22"/></g>
+    <path d="M16 4.4 V28" stroke="#4f5a24" stroke-width="0.8"/>
+  </svg>`,
+  // 회색 블레이저: 엉덩이 길이, 노치 라펠, 흰 셔츠, 단추 2개, 포켓
+  blazer: `<svg viewBox="0 0 32 32" aria-hidden="true">
+    <path d="M9.6 6.2 L5.4 8.6 L3.6 23.6 L6.9 24.2 L9.4 12.4 Z" fill="#7d838d"/>
+    <path d="M22.4 6.2 L26.6 8.6 L28.4 23.6 L25.1 24.2 L22.6 12.4 Z" fill="#7d838d"/>
+    <path d="M9.6 6 H22.4 L23.6 26.4 Q16 27.6 8.4 26.4 Z" fill="#9aa0a9"/>
+    <path d="M13.4 6 L16 14.6 L18.6 6 Z" fill="#f4f6f8"/>
+    <path d="M9.6 6 H13.4 L16 14.6 L15.1 17.8 L11.6 12.6 L12.9 10.6 L10.9 9.6 Z" fill="#80868f"/>
+    <path d="M22.4 6 H18.6 L16 14.6 L16.9 17.8 L20.4 12.6 L19.1 10.6 L21.1 9.6 Z" fill="#80868f"/>
+    <path d="M16 14.6 L16 26.9" stroke="#6c727b" stroke-width="0.7"/>
+    <circle cx="16" cy="19.6" r="0.9" fill="#3d4148"/><circle cx="16" cy="23" r="0.9" fill="#3d4148"/>
+    <rect x="9.6" y="21" width="3.6" height="0.8" rx="0.4" fill="#6c727b"/>
+    <rect x="18.8" y="21" width="3.6" height="0.8" rx="0.4" fill="#6c727b"/>
+  </svg>`,
+  // 남색 롱코트: 깔끔한 싱글 버튼, 작은 칼라
+  coat: `<svg viewBox="0 0 32 32" aria-hidden="true">
+    <path d="M10 5.6 L5.8 8 L4 25 L7.3 25.6 L9.8 12 Z" fill="#2a3a63"/>
+    <path d="M22 5.6 L26.2 8 L28 25 L24.7 25.6 L22.2 12 Z" fill="#2a3a63"/>
+    <path d="M10 5.4 H22 L23.8 30 H8.2 Z" fill="#33477a"/>
+    <path d="M13.6 5.4 L16 11.4 L18.4 5.4 Z" fill="#dfe4ec"/>
+    <path d="M10 5.4 H13.6 L16 11.4 L12.2 9.4 Z" fill="#283962"/>
+    <path d="M22 5.4 H18.4 L16 11.4 L19.8 9.4 Z" fill="#283962"/>
+    <path d="M16 11.4 V30" stroke="#22305a" stroke-width="0.7"/>
+    <circle cx="17.4" cy="15" r="0.8" fill="#8d9cc4"/>
+    <circle cx="17.4" cy="19.4" r="0.8" fill="#8d9cc4"/>
+    <circle cx="17.4" cy="23.8" r="0.8" fill="#8d9cc4"/>
+  </svg>`,
+  // 검은 숏패딩: 통통한 실루엣 + 가로 누빔선, 스탠드 카라, 지퍼
+  padding: `<svg viewBox="0 0 32 32" aria-hidden="true">
+    <g fill="#2b2e35" stroke="#5a606b" stroke-width="0.6">
+      <path d="M9.4 6.6 L4.8 9 Q3 16 3.2 24.2 L7.4 24.8 L9.2 12.8 Z"/>
+      <path d="M22.6 6.6 L27.2 9 Q29 16 28.8 24.2 L24.6 24.8 L22.8 12.8 Z"/>
+      <path d="M9.4 6 H22.6 Q24.4 16 23.8 27.4 Q16 28.8 8.2 27.4 Q7.6 16 9.4 6 Z" fill="#31353d"/>
+      <rect x="10.8" y="3.4" width="10.4" height="4.6" rx="2"/>
+    </g>
+    <g fill="none" stroke="#5f6570" stroke-width="0.8" stroke-linecap="round">
+      <path d="M8.8 11.2 Q16 12.9 23.2 11.2"/>
+      <path d="M8.5 16.4 Q16 18.1 23.5 16.4"/>
+      <path d="M8.4 21.8 Q16 23.5 23.6 21.8"/>
+      <path d="M4.2 14.4 L8.9 15.2"/><path d="M3.5 19.6 L8.4 20.4"/>
+      <path d="M27.8 14.4 L23.1 15.2"/><path d="M28.5 19.6 L23.6 20.4"/>
+    </g>
+    <path d="M16 3.8 V28.2" stroke="#b9bec7" stroke-width="0.9"/>
   </svg>`,
 };
 const icon = item => {
