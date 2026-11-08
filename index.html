@@ -13,13 +13,13 @@
   :root {
     --bg: #f6f7f9; --card: #ffffff; --text: #1d2330; --muted: #6b7280;
     --line: #e5e7eb; --accent: #2563eb; --hot: #e5484d; --cold: #3b82f6; --soft: #f1f3f6;
-    --rain: #2f80ed; --rain-bg: #e8f1fe;
+    --rain: #2f80ed; --rain-bg: #e8f1fe; --sel: #dfe9fd;
   }
   @media (prefers-color-scheme: dark) {
     :root {
       --bg: #12151b; --card: #1b2029; --text: #e8eaee; --muted: #9aa3b2;
       --line: #2a313d; --accent: #6ea8ff; --hot: #ff7b7f; --cold: #7fb0ff; --soft: #232935;
-      --rain: #7fb0ff; --rain-bg: #1d2a40;
+      --rain: #7fb0ff; --rain-bg: #1d2a40; --sel: #24324d;
     }
   }
   * { box-sizing: border-box; }
@@ -50,6 +50,8 @@
 
   /* 오늘 카드 */
   .today { display: grid; grid-template-columns: minmax(170px, auto) 1fr; gap: 24px; align-items: center; }
+  .place { font-size: 24px; font-weight: 700; line-height: 1.2; }
+  .when { font-size: 16px; font-weight: 500; margin: 4px 0 14px; }
   .big { font-size: 48px; font-weight: 700; line-height: 1; }
   .outfit { border-left: 4px solid var(--oc, var(--accent)); padding-left: 16px; }
   .outfit-range { font-weight: 700; font-size: 18px; margin: 4px 0 10px; }
@@ -82,7 +84,7 @@
   }
   .row:first-child { border-top: none; }
   .row:hover { background: var(--soft); }
-  .row.sel { background: var(--soft); box-shadow: inset 3px 0 0 var(--accent); }
+  .row.sel, .row.sel:hover { background: var(--sel); }
   .row .d { font-weight: 600; font-size: 15px; }
   .row .d small { display: block; font-weight: 400; color: var(--muted); font-size: 12px; }
   .row .w { font-size: 14px; display: flex; align-items: center; gap: 6px; white-space: nowrap; }
@@ -466,8 +468,10 @@ function render() {
     const icon = cur ? cur.icon : x.icon, desc = cur ? cur.desc : x.desc;
     $("today").innerHTML = `
       <div>
+        <div class="place">${name}</div>
+        <div class="when">${sel < 2 ? dayName(x, sel) + " · " : ""}${x.d.getUTCMonth() + 1}월 ${x.d.getUTCDate()}일 ${DOW[x.d.getUTCDay()]}요일</div>
         <div class="big">${icon} ${Math.round(showNow ? W.nowTemp : t)}°</div>
-        <div class="sub">${name} · ${dayName(x, sel)} ${dateStr(x)} · ${showNow ? "지금 " : ""}${desc}</div>
+        <div class="sub">${showNow ? "지금 " : ""}${desc}</div>
         <div class="sub"><span class="hi">최고 ${Math.round(x.max)}°</span> / <span class="lo">최저 ${Math.round(x.min)}°</span></div>
         ${W.tz ? `<div class="sub">현지 시간 기준 · ${esc(W.tz)}</div>` : ""}
       </div>
