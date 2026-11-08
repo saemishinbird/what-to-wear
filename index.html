@@ -1,0 +1,645 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>오늘 뭐 입지</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="뭐 입지">
+<meta name="theme-color" content="#12151b">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧥</text></svg>">
+<style>
+  :root {
+    --bg: #f6f7f9; --card: #ffffff; --text: #1d2330; --muted: #6b7280;
+    --line: #e5e7eb; --accent: #2563eb; --hot: #e5484d; --cold: #3b82f6; --soft: #f1f3f6;
+    --rain: #2f80ed; --rain-bg: #e8f1fe;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #12151b; --card: #1b2029; --text: #e8eaee; --muted: #9aa3b2;
+      --line: #2a313d; --accent: #6ea8ff; --hot: #ff7b7f; --cold: #7fb0ff; --soft: #232935;
+      --rain: #7fb0ff; --rain-bg: #1d2a40;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+  }
+  [hidden] { display: none !important; }
+  main { max-width: 760px; margin: 0 auto; padding: 24px 16px 48px; }
+  header { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; }
+  h1 { font-size: 22px; margin: 0; }
+  .controls { display: flex; gap: 8px; min-width: 0; }
+  select, button {
+    font: inherit; font-size: 14px; padding: 8px 12px; border-radius: 8px;
+    border: 1px solid var(--line); background: var(--card); color: var(--text); cursor: pointer;
+  }
+  select { max-width: 170px; }
+  input[type=text] {
+    flex: 1; min-width: 0; font: inherit; font-size: 16px; padding: 10px 12px; border-radius: 8px;
+    border: 1px solid var(--line); background: var(--bg); color: var(--text);
+  }
+  a { color: var(--accent); }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 20px; margin-top: 16px; }
+  .label { font-size: 13px; color: var(--muted); }
+  .sub { color: var(--muted); font-size: 14px; margin-top: 6px; }
+  .hi { color: var(--hot); } .lo { color: var(--cold); }
+  .err { color: var(--hot); }
+
+  /* 오늘 카드 */
+  .today { display: grid; grid-template-columns: minmax(170px, auto) 1fr; gap: 24px; align-items: center; }
+  .big { font-size: 48px; font-weight: 700; line-height: 1; }
+  .outfit { border-left: 4px solid var(--oc, var(--accent)); padding-left: 16px; }
+  .outfit-range { font-weight: 700; font-size: 18px; margin: 4px 0 10px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip { background: var(--soft); border-radius: 999px; padding: 5px 11px; font-size: 14px; }
+  .tip { margin-top: 10px; font-size: 13px; color: var(--muted); }
+  .umbrella {
+    margin-top: 12px; padding: 10px 12px; border-radius: 10px; background: var(--rain-bg); color: var(--rain);
+    font-weight: 700; font-size: 15px; display: flex; flex-wrap: wrap; gap: 4px 8px; align-items: baseline;
+  }
+  .umbrella span { font-weight: 400; font-size: 13px; }
+
+  /* 시간별 */
+  .hours { display: flex; gap: 2px; overflow-x: auto; margin: 10px -8px 0; padding: 0 8px 6px;
+           scrollbar-width: thin; -webkit-overflow-scrolling: touch; }
+  .h { flex: 0 0 56px; text-align: center; padding: 8px 0; border-radius: 10px; }
+  .h.wet { background: var(--rain-bg); }
+  .h .t { font-size: 12px; color: var(--muted); white-space: nowrap; }
+  .h .t b { color: var(--text); }
+  .h .ic { font-size: 22px; margin: 6px 0 4px; }
+  .h .v { font-size: 15px; font-weight: 600; }
+  .h .p { font-size: 11px; color: var(--rain); min-height: 14px; margin-top: 2px; }
+  .h.newday { border-left: 1px dashed var(--line); border-radius: 0 10px 10px 0; }
+
+  /* 7일 목록 - 하루에 한 줄 */
+  .rows { margin-top: 8px; }
+  .row {
+    display: grid; grid-template-columns: 84px 128px 1fr 136px; gap: 12px; align-items: center;
+    padding: 12px 8px; border-top: 1px solid var(--line); cursor: pointer; border-radius: 8px;
+  }
+  .row:first-child { border-top: none; }
+  .row:hover { background: var(--soft); }
+  .row.sel { background: var(--soft); box-shadow: inset 3px 0 0 var(--accent); }
+  .row .d { font-weight: 600; font-size: 15px; }
+  .row .d small { display: block; font-weight: 400; color: var(--muted); font-size: 12px; }
+  .row .w { font-size: 14px; display: flex; align-items: center; gap: 6px; white-space: nowrap; }
+  .row .w .ic { font-size: 22px; }
+  .row .w .pop { font-size: 12px; color: var(--rain); }
+  .temps { display: grid; grid-template-columns: 34px 1fr 34px; gap: 8px; align-items: center; font-size: 15px; }
+  .temps .lo { text-align: right; }
+  .bar { position: relative; height: 6px; border-radius: 3px; background: var(--soft); }
+  .bar i { position: absolute; top: 0; bottom: 0; border-radius: 3px;
+           background: linear-gradient(90deg, var(--cold), var(--hot)); }
+  .pill { font-size: 13px; padding: 4px 10px; border-radius: 999px; background: var(--soft);
+          display: inline-flex; align-items: center; gap: 6px; justify-self: end; white-space: nowrap; }
+  .pill::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--oc); }
+
+  /* 설정/검색 */
+  .setup b { display: block; }
+  .formrow { display: flex; gap: 8px; margin: 12px 0 8px; }
+  .list { margin-top: 8px; }
+  .item { display: flex; justify-content: space-between; align-items: center; gap: 8px;
+          padding: 10px 8px; border-top: 1px solid var(--line); cursor: pointer; border-radius: 8px; }
+  .item:hover { background: var(--soft); }
+  .item small { color: var(--muted); }
+  .item button { padding: 4px 10px; font-size: 13px; }
+  .foot { color: var(--muted); font-size: 12px; margin-top: 16px; line-height: 1.6; }
+
+  @media (max-width: 560px) {
+    .today { grid-template-columns: 1fr; gap: 16px; }
+    .big { font-size: 40px; }
+    .row { grid-template-columns: 60px 44px 1fr; gap: 10px; }
+    .row .w { flex-direction: column; gap: 0; }
+    .row .w .desc { display: none; }
+    .pill { grid-column: 1 / -1; justify-self: start; margin-top: -4px; }
+    select { max-width: 130px; }
+  }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>오늘 뭐 입지</h1>
+    <div class="controls">
+      <select id="city" aria-label="도시"></select>
+      <button id="geo" title="현재 위치 사용" aria-label="현재 위치">📍</button>
+      <button id="keyBtn" title="인증키 설정" aria-label="인증키 설정">⚙️</button>
+    </div>
+  </header>
+
+  <section class="card" id="searchCard" hidden>
+    <form id="searchForm">
+      <b>지역 검색</b>
+      <div class="sub">동네·구·역 이름이나 해외 도시 (예: 강남구, 잠실, 판교, 도쿄, Paris)</div>
+      <div class="formrow">
+        <input id="searchInput" type="text" autocomplete="off" placeholder="지역 이름">
+        <button type="submit">검색</button>
+        <button type="button" id="searchClose">닫기</button>
+      </div>
+    </form>
+    <div class="list" id="searchResults"></div>
+    <div id="savedWrap" hidden>
+      <div class="label" style="margin-top:16px">최근 검색 (7일)</div>
+      <div class="list" id="savedList"></div>
+    </div>
+  </section>
+
+  <section class="card today" id="today">불러오는 중…</section>
+
+  <section class="card" id="hourlyCard" hidden>
+    <div class="label" id="hourlyLabel">시간별 예보</div>
+    <div class="hours" id="hours"></div>
+  </section>
+
+  <section class="card">
+    <div class="label">7일 날씨 (누르면 그날 옷차림)</div>
+    <div class="rows" id="rows"></div>
+  </section>
+
+  <div class="foot">
+    국내: 기상청 단기예보(~3일)·중기예보(그 이후) / 공공데이터포털 · 해외: Open-Meteo<br>
+    옷차림 기준 = 그날 (최고+최저)/2 기온 · 참고: FLIR "기온별 옷차림"
+  </div>
+</main>
+
+<script>
+/* =========================================================
+ * 기온별 옷차림 (위에서부터, min 이상인 첫 항목 선택)
+ * ========================================================= */
+const OUTFITS = [
+  { min: 28,   label: "28℃ 이상", color: "#f2c200", items: ["민소매", "반팔", "반바지", "치마"] },
+  { min: 23,   label: "23~27℃",  color: "#f5a000", items: ["반팔", "얇은 셔츠", "반바지", "면바지"] },
+  { min: 20,   label: "20~22℃",  color: "#f07a1a", items: ["얇은 가디건", "긴팔티", "면바지", "청바지"] },
+  { min: 17,   label: "17~19℃",  color: "#e8502a", items: ["얇은 니트", "가디건", "맨투맨", "얇은 자켓", "면바지", "청바지"] },
+  { min: 12,   label: "12~16℃",  color: "#e0246a", items: ["자켓", "가디건", "야상", "맨투맨", "니트", "스타킹", "청바지", "면바지"] },
+  { min: 9,    label: "9~11℃",   color: "#b51f86", items: ["자켓", "트렌치코트", "야상", "니트", "스타킹", "청바지", "면바지"], tip: "아우터 안에 가디건 필수!" },
+  { min: 5,    label: "5~8℃",    color: "#7a2fa0", items: ["코트", "히트텍", "니트", "청바지", "레깅스"], tip: "레이어드 필수!" },
+  { min: -100, label: "4℃ 이하", color: "#2c3a8f", items: ["패딩", "두꺼운 코트", "목도리", "기모 제품"], tip: "최대한 많이 껴입자!" },
+];
+
+/* 기온 기준: "avg" = (최고+최저)/2, "max" = 최고기온, "min" = 최저기온 */
+const BASIS = "avg";
+/* 강수확률이 이 값(%) 이상이거나 비/눈 예보면 우산 표시 */
+const RAIN_POP = 60;
+
+/* 국내 도시: nx,ny = 단기예보 격자 / ta = 중기기온 구역 / land = 중기육상 구역 */
+const CITIES = {
+  "서울": { lat: 37.5665, lon: 126.9780, nx: 60,  ny: 127, ta: "11B10101", land: "11B00000" },
+  "인천": { lat: 37.4563, lon: 126.7052, nx: 55,  ny: 124, ta: "11B20201", land: "11B00000" },
+  "수원": { lat: 37.2636, lon: 127.0286, nx: 60,  ny: 121, ta: "11B20601", land: "11B00000" },
+  "강릉": { lat: 37.7519, lon: 128.8761, nx: 92,  ny: 131, ta: "11D20501", land: "11D20000" },
+  "청주": { lat: 36.6424, lon: 127.4890, nx: 69,  ny: 106, ta: "11C10301", land: "11C10000" },
+  "대전": { lat: 36.3504, lon: 127.3845, nx: 67,  ny: 100, ta: "11C20401", land: "11C20000" },
+  "전주": { lat: 35.8242, lon: 127.1480, nx: 63,  ny: 89,  ta: "11F10201", land: "11F10000" },
+  "광주": { lat: 35.1595, lon: 126.8526, nx: 58,  ny: 74,  ta: "11F20501", land: "11F20000" },
+  "대구": { lat: 35.8714, lon: 128.6014, nx: 89,  ny: 90,  ta: "11H10701", land: "11H10000" },
+  "울산": { lat: 35.5384, lon: 129.3114, nx: 102, ny: 84,  ta: "11H20101", land: "11H20000" },
+  "부산": { lat: 35.1796, lon: 129.0756, nx: 98,  ny: 76,  ta: "11H20201", land: "11H20000" },
+  "제주": { lat: 33.4996, lon: 126.5312, nx: 52,  ny: 38,  ta: "11G00201", land: "11G00000" },
+};
+
+/* ---------- 유틸 ---------- */
+const $ = id => document.getElementById(id);
+const DOW = ["일", "월", "화", "수", "목", "금", "토"];
+const pad = n => String(n).padStart(2, "0");
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const kstNow = () => new Date(Date.now() + 9 * 3600e3);            // getUTC*로 읽으면 KST
+const addDays = (d, n) => new Date(d.getTime() + n * 86400e3);
+const ymd = d => `${d.getUTCFullYear()}${pad(d.getUTCMonth() + 1)}${pad(d.getUTCDate())}`;
+const keyDate = k => new Date(Date.UTC(+k.slice(0, 4), +k.slice(4, 6) - 1, +k.slice(6, 8)));
+const pickOutfit = t => OUTFITS.find(o => Math.round(t) >= o.min) || OUTFITS.at(-1);
+const basisTemp = x => BASIS === "max" ? x.max : BASIS === "min" ? x.min : (x.max + x.min) / 2;
+const store = {
+  get(k, def) {
+    let v; try { v = localStorage.getItem(k); } catch { return def; }
+    if (v == null) return def;
+    try { return JSON.parse(v); } catch { return v; }   // 예전 버전이 그냥 문자열로 저장한 값
+  },
+  set(k, v) { try { v == null ? localStorage.removeItem(k) : localStorage.setItem(k, JSON.stringify(v)); } catch {} },
+};
+
+/* 위경도 → 기상청 격자 (기상청 LCC 공식) */
+function toGrid(lat, lon) {
+  const RE = 6371.00877, GRID = 5.0, SLAT1 = 30, SLAT2 = 60, OLON = 126, OLAT = 38, XO = 43, YO = 136;
+  const D = Math.PI / 180, re = RE / GRID, s1 = SLAT1 * D, s2 = SLAT2 * D, olon = OLON * D, olat = OLAT * D;
+  let sn = Math.tan(Math.PI * 0.25 + s2 * 0.5) / Math.tan(Math.PI * 0.25 + s1 * 0.5);
+  sn = Math.log(Math.cos(s1) / Math.cos(s2)) / Math.log(sn);
+  let sf = Math.tan(Math.PI * 0.25 + s1 * 0.5); sf = Math.pow(sf, sn) * Math.cos(s1) / sn;
+  let ro = Math.tan(Math.PI * 0.25 + olat * 0.5); ro = re * sf / Math.pow(ro, sn);
+  let ra = Math.tan(Math.PI * 0.25 + lat * D * 0.5); ra = re * sf / Math.pow(ra, sn);
+  let th = lon * D - olon;
+  if (th > Math.PI) th -= 2 * Math.PI; if (th < -Math.PI) th += 2 * Math.PI; th *= sn;
+  return { nx: Math.floor(ra * Math.sin(th) + XO + 0.5), ny: Math.floor(ro - ra * Math.cos(th) + YO + 0.5) };
+}
+const inKorea = (lat, lon) => lat > 33 && lat < 38.7 && lon > 124.5 && lon < 131;
+
+/* 장소 만들기: 국내면 기상청(가까운 도시의 중기예보 구역 사용), 해외면 Open-Meteo */
+function makePlace(name, lat, lon, cc) {
+  const korea = cc ? cc === "KR" : inKorea(lat, lon);
+  if (!korea) return { name, kind: "global", lat, lon };
+  const near = Object.values(CITIES).sort((a, b) =>
+    Math.hypot(a.lat - lat, a.lon - lon) - Math.hypot(b.lat - lat, b.lon - lon))[0];
+  return { ...near, name, kind: "kma", lat, lon, ...toGrid(lat, lon) };
+}
+
+/* ---------- 날씨 아이콘 ---------- */
+const PTY = { 1: ["🌧️", "비"], 2: ["🌨️", "비/눈"], 3: ["❄️", "눈"], 4: ["🌦️", "소나기"] };
+const SKY = { 1: ["☀️", "맑음"], 3: ["⛅", "구름많음"], 4: ["☁️", "흐림"] };
+const night = (ic, h) => ic === "☀️" && (h < 6 || h >= 19) ? "🌙" : ic;
+function wfIcon(wf = "") {
+  const ic = wf.includes("비/눈") ? "🌨️" : wf.includes("눈") ? "❄️" : wf.includes("소나기") ? "🌦️" :
+             wf.includes("비") ? "🌧️" : wf.includes("흐") ? "☁️" : wf.includes("구름") ? "⛅" : "☀️";
+  return [ic, wf || "-"];
+}
+const WMO = c =>
+  c === 0 ? ["☀️", "맑음"] : c <= 2 ? ["🌤️", "구름 조금"] : c === 3 ? ["☁️", "흐림"] :
+  c <= 48 ? ["🌁", "안개"] : c <= 57 ? ["🌦️", "이슬비"] : c <= 67 ? ["🌧️", "비"] :
+  c <= 77 ? ["❄️", "눈"] : c <= 82 ? ["🌦️", "소나기"] : c <= 86 ? ["🌨️", "소낙눈"] : ["⛈️", "뇌우"];
+const wmoWet = c => (c >= 51 && c <= 67) || (c >= 71 && c <= 86) || c >= 95;
+
+/* ---------- 기상청 API (브라우저에서 직접 호출, 키는 이 기기에만 저장) ---------- */
+class KmaError extends Error {}
+async function kma(path, params) {
+  const key = store.get("kmaKey", "");
+  if (!key) throw new KmaError("NO_KEY");
+  const encKey = key.includes("%") ? key : encodeURIComponent(key);
+  const qs = new URLSearchParams({ pageNo: 1, numOfRows: 1500, dataType: "JSON", ...params });
+  const r = await fetch(`https://apis.data.go.kr/1360000/${path}?serviceKey=${encKey}&${qs}`);
+  const text = await r.text();
+  if (text.trim().startsWith("<")) {            // 인증 오류 등은 XML로 옴
+    const m = text.match(/<(returnAuthMsg|resultMsg|errMsg)>(.*?)<\//);
+    throw new KmaError(m ? m[2] : `HTTP ${r.status}`);
+  }
+  const j = JSON.parse(text);
+  const h = j.response?.header;
+  if (h && h.resultCode !== "00") throw new KmaError(`${h.resultCode} ${h.resultMsg}`);
+  return j.response.body.items.item;
+}
+async function firstOk(tries) {           // 최신 발표가 아직 없으면 이전 발표로
+  let last;
+  for (const t of tries) { try { return await t(); } catch (e) { last = e; if (e.message === "NO_KEY") break; } }
+  throw last;
+}
+
+/* 단기예보: 시간별 + 일별 (오늘 02시 발표, 02:15 이전이면 어제 23시) */
+async function getShort(nx, ny) {
+  const now = kstNow(), mins = now.getUTCHours() * 60 + now.getUTCMinutes();
+  const today = ymd(now), yday = ymd(addDays(now, -1));
+  const bases = mins >= 135 ? [[today, "0200"], [yday, "2300"]] : [[yday, "2300"], [yday, "2000"]];
+  const items = await firstOk(bases.map(([d, t]) => () =>
+    kma("VilageFcstInfoService_2.0/getVilageFcst", { base_date: d, base_time: t, nx, ny })));
+
+  const by = {}, hmap = {};
+  for (const it of items) {
+    const d = (by[it.fcstDate] ??= { tmp: [] }), v = +it.fcstValue;
+    if (it.category === "TMX") d.tmx = v;
+    if (it.category === "TMN") d.tmn = v;
+    if (it.category === "TMP") d.tmp.push(v);
+    if (["TMP", "SKY", "PTY", "POP"].includes(it.category))
+      (hmap[it.fcstDate + it.fcstTime] ??= { date: it.fcstDate, hour: +it.fcstTime.slice(0, 2) })[it.category] = v;
+  }
+  const hours = Object.keys(hmap).sort().map(k => {
+    const h = hmap[k], wet = h.PTY > 0;
+    const [ic, desc] = wet ? PTY[h.PTY] : SKY[h.SKY] || SKY[1];
+    return { date: h.date, hour: h.hour, temp: h.TMP, pop: h.POP ?? 0, wet, icon: night(ic, h.hour), desc };
+  }).filter(h => h.temp != null);
+
+  const daily = {};
+  for (const [date, d] of Object.entries(by)) {
+    if (!((d.tmx != null && d.tmn != null) || d.tmp.length >= 20)) continue;  // 하루치가 다 있는 날만
+    const dh = hours.filter(h => h.date === date);
+    const day = dh.filter(h => h.hour >= 6 && h.hour <= 21);
+    const wetH = day.find(h => h.wet);
+    const noon = dh.find(h => h.hour === 12) || day[0] || dh[0];
+    const [icon, desc] = wetH ? [wetH.icon, wetH.desc] : SKY[Object.keys(SKY).find(k => SKY[k][1] === noon?.desc)] || SKY[1];
+    const pop = Math.max(0, ...dh.map(h => h.pop));
+    daily[date] = { max: d.tmx ?? Math.max(...d.tmp), min: d.tmn ?? Math.min(...d.tmp), icon, desc, pop,
+                    rain: day.some(h => h.wet || h.pop >= RAIN_POP) };
+  }
+  return { daily, hours };
+}
+
+/* 중기예보: 06시/18시 발표 */
+async function getMid(ta, land) {
+  const now = kstNow(), mins = now.getUTCHours() * 60 + now.getUTCMinutes();
+  const cands = mins >= 18 * 60 + 10 ? [[now, "1800"], [now, "0600"]]
+              : mins >= 6 * 60 + 10  ? [[now, "0600"], [addDays(now, -1), "1800"]]
+              : [[addDays(now, -1), "1800"], [addDays(now, -1), "0600"]];
+  return firstOk(cands.map(([d, t]) => async () => {
+    const tmFc = ymd(d) + t;
+    const [taRes, landRes] = await Promise.all([
+      kma("MidFcstInfoService/getMidTa", { regId: ta, tmFc }),
+      kma("MidFcstInfoService/getMidLandFcst", { regId: land, tmFc }).catch(() => [{}]),
+    ]);
+    const T = taRes[0], L = landRes[0] || {}, out = {};
+    for (let k = 3; k <= 10; k++) {
+      const mx = T[`taMax${k}`], mn = T[`taMin${k}`];
+      if (mx == null || mn == null || mx === "" || mn === "") continue;
+      const wf = L[`wf${k}Pm`] || L[`wf${k}`] || "";
+      const [icon, desc] = wfIcon(wf);
+      const pop = Math.max(0, ...[L[`rnSt${k}Am`], L[`rnSt${k}Pm`], L[`rnSt${k}`]].filter(v => v != null).map(Number));
+      out[ymd(addDays(d, k))] = { max: +mx, min: +mn, icon, desc, pop,
+        rain: /비|눈|소나기/.test(wf + (L[`wf${k}Am`] || "")) || pop >= RAIN_POP };
+    }
+    return out;
+  }));
+}
+
+/* 현재 기온: 초단기실황 (매시 40분 이후 발표) */
+async function getNow(nx, ny) {
+  let t = kstNow();
+  if (t.getUTCMinutes() < 45) t = new Date(t.getTime() - 3600e3);
+  const items = await kma("VilageFcstInfoService_2.0/getUltraSrtNcst",
+    { base_date: ymd(t), base_time: pad(t.getUTCHours()) + "00", nx, ny });
+  const T = items.find(i => i.category === "T1H");
+  return T ? +T.obsrValue : null;
+}
+
+async function loadKma(p) {
+  const [s, m, n] = await Promise.allSettled([getShort(p.nx, p.ny), getMid(p.ta, p.land), getNow(p.nx, p.ny)]);
+  if (s.status === "rejected") throw s.reason;
+  const mid = m.status === "fulfilled" ? m.value : {};
+  const now = kstNow();
+  const days = Array.from({ length: 7 }, (_, i) => {
+    const key = ymd(addDays(now, i));
+    return { key, d: keyDate(key), ...(s.value.daily[key] || mid[key] || {}) };
+  });
+  return { days, hours: s.value.hours, nowTemp: n.status === "fulfilled" ? n.value : null,
+           nowKey: ymd(now) + pad(now.getUTCHours()), source: "기상청" };
+}
+
+/* ---------- 해외: Open-Meteo (키 필요 없음) ---------- */
+async function loadGlobal(p) {
+  const url = `https://api.open-meteo.com/v1/forecast?latitude=${p.lat}&longitude=${p.lon}` +
+    `&current=temperature_2m,weather_code` +
+    `&hourly=temperature_2m,precipitation_probability,weather_code` +
+    `&daily=temperature_2m_max,temperature_2m_min,weather_code,precipitation_probability_max` +
+    `&timezone=auto&forecast_days=7`;
+  const r = await fetch(url), j = await r.json();
+  if (j.error) throw new Error(j.reason);
+  const local = new Date(Date.now() + j.utc_offset_seconds * 1000);
+  const hours = j.hourly.time.map((t, i) => {
+    const c = j.hourly.weather_code[i], hour = +t.slice(11, 13), [ic, desc] = WMO(c);
+    return { date: t.slice(0, 10).replaceAll("-", ""), hour, temp: j.hourly.temperature_2m[i],
+             pop: j.hourly.precipitation_probability[i] ?? 0, wet: wmoWet(c), icon: night(ic, hour), desc };
+  });
+  const D = j.daily;
+  const days = D.time.map((t, i) => {
+    const key = t.replaceAll("-", ""), c = D.weather_code[i], pop = D.precipitation_probability_max[i] ?? 0;
+    const [icon, desc] = WMO(c);
+    return { key, d: keyDate(key), max: D.temperature_2m_max[i], min: D.temperature_2m_min[i], icon, desc, pop,
+             rain: wmoWet(c) || pop >= RAIN_POP };
+  });
+  return { days, hours, nowTemp: j.current.temperature_2m, nowKey: ymd(local) + pad(local.getUTCHours()),
+           source: "Open-Meteo", tz: j.timezone };
+}
+
+/* ---------- 상태 & 렌더 ---------- */
+let W = null, sel = 0, currentPlace = null;
+
+async function load(place) {
+  currentPlace = place;
+  $("today").textContent = "불러오는 중…"; $("rows").innerHTML = ""; $("hourlyCard").hidden = true;
+  try { W = place.kind === "kma" ? await loadKma(place) : await loadGlobal(place); }
+  catch (e) { return showError(e); }
+  sel = 0; render();
+}
+
+function showKeyForm(msg = "") {
+  $("hourlyCard").hidden = true;
+  $("today").innerHTML = `<form class="setup" id="keyForm" style="grid-column:1/-1">
+      <b>기상청 API 인증키를 입력해 주세요</b>
+      <div class="sub">국내 날씨에 필요해요. 처음 한 번만 입력하면 이 기기 브라우저에만 저장되고, 다른 사람에겐 보이지 않아요.
+        (해외 도시는 키 없이도 돼요)</div>
+      ${msg ? `<div class="err" style="margin-top:8px">${esc(msg)}</div>` : ""}
+      <div class="formrow">
+        <input id="keyInput" type="text" autocomplete="off" autocapitalize="off" spellcheck="false"
+               placeholder="공공데이터포털 일반 인증키 붙여넣기" value="${esc(store.get("kmaKey", ""))}">
+        <button type="submit">저장</button>
+      </div>
+      <div class="sub">키는 <a href="https://www.data.go.kr" target="_blank" rel="noopener">공공데이터포털</a> → 마이페이지 → 활용신청 현황에서 복사할 수 있어요.</div>
+    </form>`;
+  $("keyForm").addEventListener("submit", e => {
+    e.preventDefault();
+    const k = $("keyInput").value.trim();
+    if (!k) return;
+    store.set("kmaKey", k); load(currentPlace);
+  });
+}
+
+function showError(e) {
+  if (e.message === "NO_KEY") return showKeyForm();
+  if (/SERVICE_KEY|KEY_IS|등록되지/i.test(e.message))
+    return showKeyForm(`인증키 오류: ${e.message} (신청 직후라면 1~2시간 뒤 다시 시도)`);
+  $("today").innerHTML = `<div class="err" style="grid-column:1/-1">날씨를 불러오지 못했어요: ${esc(e.message)}</div>`;
+}
+
+const dayName = (x, i) => i === 0 ? "오늘" : i === 1 ? "내일" : `${DOW[x.d.getUTCDay()]}요일`;
+const dateStr = x => `${x.d.getUTCMonth() + 1}/${x.d.getUTCDate()}`;
+
+/* 선택한 날의 시간별: 오늘은 지금부터 24시간, 다른 날은 그날 0~23시 */
+function hoursFor(i) {
+  const x = W.days[i];
+  if (i === 0) return W.hours.filter(h => h.date + pad(h.hour) >= W.nowKey).slice(0, 24);
+  return W.hours.filter(h => h.date === x.key);
+}
+
+function umbrellaHtml(i) {
+  const x = W.days[i];
+  if (!x.rain) return "";
+  const wet = hoursFor(i).filter(h => h.date === x.key && (h.wet || h.pop >= RAIN_POP));
+  const when = wet.length ? ` · ${wet[0].hour}시~${wet.at(-1).hour + 1}시` : "";
+  return `<div class="umbrella">☂️ 우산 챙기세요<span>강수확률 최대 ${x.pop}%${when}</span></div>`;
+}
+
+function render() {
+  const x = W.days[sel], name = esc(currentPlace.name);
+  if (x.max == null) {
+    $("today").innerHTML = `<div class="sub">${dateStr(x)} 예보가 아직 없어요.</div>`;
+  } else {
+    const t = basisTemp(x), o = pickOutfit(t);
+    const showNow = sel === 0 && W.nowTemp != null;
+    const cur = sel === 0 ? hoursFor(0)[0] : null;      // 오늘은 지금 시각의 날씨로 표시
+    const icon = cur ? cur.icon : x.icon, desc = cur ? cur.desc : x.desc;
+    $("today").innerHTML = `
+      <div>
+        <div class="big">${icon} ${Math.round(showNow ? W.nowTemp : t)}°</div>
+        <div class="sub">${name} · ${dayName(x, sel)} ${dateStr(x)} · ${showNow ? "지금 " : ""}${desc}</div>
+        <div class="sub"><span class="hi">최고 ${Math.round(x.max)}°</span> / <span class="lo">최저 ${Math.round(x.min)}°</span></div>
+        ${W.tz ? `<div class="sub">현지 시간 기준 · ${esc(W.tz)}</div>` : ""}
+      </div>
+      <div class="outfit" style="--oc:${o.color}">
+        <div class="label">${sel === 0 ? "오늘" : "이날"}의 추천 옷차림 (기준 ${t.toFixed(1)}°)</div>
+        <div class="outfit-range">${o.label}</div>
+        <div class="chips">${o.items.map(i => `<span class="chip">${i}</span>`).join("")}</div>
+        ${o.tip ? `<div class="tip">💡 ${o.tip}</div>` : ""}
+        ${umbrellaHtml(sel)}
+      </div>`;
+  }
+
+  // 시간별
+  const hs = hoursFor(sel);
+  $("hourlyCard").hidden = !hs.length;
+  $("hourlyLabel").textContent = sel === 0 ? "시간별 예보 (앞으로 24시간)" : `시간별 예보 · ${dayName(x, sel)} ${dateStr(x)}`;
+  $("hours").innerHTML = hs.map((h, k) => {
+    const first = sel === 0 && k === 0;
+    const newDay = k > 0 && h.hour === 0;
+    const label = first ? "<b>지금</b>" : newDay ? `<b>${keyDate(h.date).getUTCMonth() + 1}/${keyDate(h.date).getUTCDate()}</b>` : `${h.hour}시`;
+    return `<div class="h ${h.wet || h.pop >= RAIN_POP ? "wet" : ""} ${newDay ? "newday" : ""}">
+      <div class="t">${label}</div><div class="ic">${h.icon}</div>
+      <div class="v">${Math.round(h.temp)}°</div><div class="p">${h.pop >= 20 ? h.pop + "%" : ""}</div></div>`;
+  }).join("");
+  $("hours").scrollLeft = 0;
+
+  // 7일
+  const known = W.days.filter(d => d.max != null);
+  const lo = Math.min(...known.map(d => d.min)), hi = Math.max(...known.map(d => d.max));
+  const pct = v => ((v - lo) / Math.max(hi - lo, 1)) * 100;
+  $("rows").innerHTML = W.days.map((x, i) => {
+    const head = `<div class="d">${dayName(x, i)}<small>${dateStr(x)}</small></div>`;
+    if (x.max == null) return `<div class="row" data-i="${i}">${head}<div class="w sub">예보 없음</div></div>`;
+    const o = pickOutfit(basisTemp(x));
+    return `<div class="row ${i === sel ? "sel" : ""}" data-i="${i}">
+      ${head}
+      <div class="w"><span class="ic">${x.icon}</span><span class="desc">${x.desc}</span>${x.pop >= 30 ? `<span class="pop">${x.pop}%</span>` : ""}</div>
+      <div class="temps">
+        <span class="lo">${Math.round(x.min)}°</span>
+        <div class="bar"><i style="left:${pct(x.min)}%;right:${100 - pct(x.max)}%"></i></div>
+        <span class="hi">${Math.round(x.max)}°</span>
+      </div>
+      <span class="pill" style="--oc:${o.color}">${x.rain ? "☂️ " : ""}${o.items.slice(0, 2).join(" · ")}</span>
+    </div>`;
+  }).join("");
+}
+
+$("rows").addEventListener("click", e => {
+  const el = e.target.closest(".row"); if (!el || !W) return;
+  sel = +el.dataset.i; render();
+});
+
+/* ---------- 지역 선택: 기본 지역 + 최근 검색(7일) + 검색 ---------- */
+/* 기본 지역 (항상 목록 맨 위, 첫 번째가 처음 열 때 보이는 곳) */
+const DEFAULTS = [
+  { name: "송파구", sub: "서울특별시", lat: 37.5145, lon: 127.1059, cc: "KR" },
+  { name: "강남구", sub: "서울특별시", lat: 37.5172, lon: 127.0473, cc: "KR" },
+];
+const RECENT_DAYS = 7, RECENT_MAX = 10;
+const sameP = (a, b) => !!a && !!b && a.name === b.name && a.sub === b.sub;
+const isDefault = p => DEFAULTS.some(d => sameP(d, p));
+
+// recent: [{name, sub, lat, lon, cc, ts}]  — 7일 지난 건 자동 삭제
+let recent = store.get("recent", []).filter(p => p && !isDefault(p) && Date.now() - p.ts < RECENT_DAYS * 864e5);
+store.set("recent", recent);
+let current = store.get("current", null);            // 마지막으로 본 지역 (null = 기본 첫 번째)
+if (current && !isDefault(current) && !recent.some(r => sameP(r, current))) current = null;
+
+const toPlace = p => { p = p || DEFAULTS[0]; return makePlace(p.name, p.lat, p.lon, p.cc); };
+
+function renderSelect() {
+  const cur = current || DEFAULTS[0];
+  const opt = (v, t, on) => `<option value="${v}" ${on ? "selected" : ""}>${esc(t)}</option>`;
+  $("city").innerHTML =
+    DEFAULTS.map((d, i) => opt("d:" + i, d.name, sameP(d, cur))).join("") +
+    (recent.length ? `<optgroup label="최근 검색">${recent.map((r, i) => opt("r:" + i, r.name, sameP(r, cur))).join("")}</optgroup>` : "") +
+    `<option value="add">🔍 지역 검색…</option>`;
+  $("savedWrap").hidden = !recent.length;
+  $("savedList").innerHTML = recent.map((r, i) =>
+    `<div class="item" data-i="${i}"><span>${esc(r.name)} <small>${esc(r.sub || "")}</small></span>
+       <button type="button" data-del="${i}">삭제</button></div>`).join("");
+}
+
+function use(p) {                                     // p = 지역 정보, null이면 기본 첫 번째
+  if (p && isDefault(p)) p = DEFAULTS.find(d => sameP(d, p));
+  else if (p) {
+    p = { ...p, ts: Date.now() };
+    recent = [p, ...recent.filter(r => !sameP(r, p))].slice(0, RECENT_MAX);
+    store.set("recent", recent);
+  }
+  current = p; store.set("current", p);
+  renderSelect(); load(toPlace(p));
+}
+
+function openSearch() {
+  $("searchCard").hidden = false; $("searchInput").focus();
+}
+
+$("city").addEventListener("change", e => {
+  const v = e.target.value;
+  if (v === "add") { renderSelect(); return openSearch(); }
+  use(v.startsWith("d:") ? DEFAULTS[+v.slice(2)] : recent[+v.slice(2)]);
+});
+
+/* 국내는 오픈스트리트맵(동·구·역까지), 해외는 Open-Meteo 지명 검색 */
+async function searchPlaces(q) {
+  const enc = encodeURIComponent(q);
+  const [kr, gl] = await Promise.allSettled([
+    fetch(`https://nominatim.openstreetmap.org/search?format=jsonv2&limit=8&accept-language=ko&addressdetails=1&countrycodes=kr&q=${enc}`).then(r => r.json()),
+    fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${enc}&count=8&language=ko&format=json`).then(r => r.json()),
+  ]);
+  const out = [];
+  if (kr.status === "fulfilled") for (const p of kr.value) {
+    const a = p.address || {};
+    let name = p.name || p.display_name.split(",")[0];
+    if (p.category === "railway" && !name.endsWith("역")) name += "역";
+    const sub = [a.city || a.province || a.state, a.borough || a.city_district || a.county]
+      .filter(x => x && x !== name).join(" ");
+    out.push({ name, sub, lat: +p.lat, lon: +p.lon, cc: "KR" });
+  }
+  if (gl.status === "fulfilled") for (const p of gl.value.results || []) {
+    if (p.country_code === "KR") continue;
+    out.push({ name: p.name, sub: [p.admin1, p.country].filter(Boolean).join(", "),
+               lat: p.latitude, lon: p.longitude, cc: p.country_code });
+  }
+  if (kr.status === "rejected" && gl.status === "rejected") throw kr.reason;
+  return out.filter((p, i) => out.findIndex(o => sameP(o, p)) === i);
+}
+
+$("searchForm").addEventListener("submit", async e => {
+  e.preventDefault();
+  const q = $("searchInput").value.trim(); if (!q) return;
+  $("searchResults").innerHTML = `<div class="sub">검색 중…</div>`;
+  try {
+    const res = await searchPlaces(q);
+    $("searchResults").innerHTML = res.length ? res.map((p, i) =>
+      `<div class="item" data-r="${i}"><span>${esc(p.name)} <small>${esc(p.sub)}</small></span>
+         <small>${p.cc === "KR" ? "기상청" : "해외"}</small></div>`).join("")
+      : `<div class="sub">결과가 없어요. 다른 이름이나 영어로 검색해 보세요.</div>`;
+    $("searchResults").onclick = ev => {
+      const el = ev.target.closest("[data-r]"); if (!el) return;
+      $("searchCard").hidden = true; $("searchResults").innerHTML = ""; $("searchInput").value = "";
+      use(res[+el.dataset.r]);
+    };
+  } catch (err) {
+    $("searchResults").innerHTML = `<div class="err">검색 실패: ${esc(err.message)}</div>`;
+  }
+});
+
+$("savedList").addEventListener("click", e => {
+  const del = e.target.closest("[data-del]");
+  if (del) {
+    const [gone] = recent.splice(+del.dataset.del, 1);
+    store.set("recent", recent);
+    if (sameP(gone, current)) use(null); else renderSelect();
+    return;
+  }
+  const it = e.target.closest("[data-i]");
+  if (it) { $("searchCard").hidden = true; use(recent[+it.dataset.i]); }
+});
+$("searchClose").addEventListener("click", () => { $("searchCard").hidden = true; });
+
+$("keyBtn").addEventListener("click", () => showKeyForm());
+$("geo").addEventListener("click", () => {
+  if (!navigator.geolocation) return alert("이 브라우저는 위치를 지원하지 않아요");
+  navigator.geolocation.getCurrentPosition(
+    p => load(makePlace("내 위치", p.coords.latitude, p.coords.longitude)),
+    () => alert("위치 권한이 거부됐어요"));
+});
+
+renderSelect();
+load(toPlace(current));
+</script>
+</body>
+</html>
