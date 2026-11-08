@@ -198,11 +198,22 @@ const ICONS = {
   // 코트·패딩 (직접 그린 아이콘)
   "코트": "svg:coat", "두꺼운 코트": "svg:coat", "패딩": "svg:padding",
   // 하의
-  "반바지": "🩳", "치마": "👗", "면바지": "👖", "청바지": "👖", "스타킹": "🧦", "레깅스": "🧦",
+  "반바지": "🩳", "치마": "👗", "면바지": "svg:chino", "청바지": "👖", "스타킹": "🧦", "레깅스": "🧦",
   // 소품
   "목도리": "🧣", "기모 제품": "🧤",
 };
 const SVG_ICONS = {
+  // 면바지: 베이지 치노, 허리밴드 + 사선 주머니 + 앞주름
+  chino: `<svg viewBox="0 0 32 32" aria-hidden="true">
+    <path d="M9 6.2 H23 L24 29 H17.4 L16 13.4 L14.6 29 H8 Z" fill="#cfba8f" stroke="#a8925f" stroke-width="0.6"/>
+    <rect x="9" y="3.4" width="14" height="3" rx="0.6" fill="#b9a374" stroke="#a8925f" stroke-width="0.6"/>
+    <g fill="none" stroke="#a8925f" stroke-width="0.55" stroke-linecap="round">
+      <path d="M9.6 6.6 Q11.8 7.2 12.4 10.2"/><path d="M22.4 6.6 Q20.2 7.2 19.6 10.2"/>
+      <path d="M16 6.4 V12"/>
+      <path d="M11.8 10.6 L11.2 28.6" opacity="0.6"/><path d="M20.2 10.6 L20.8 28.6" opacity="0.6"/>
+    </g>
+    <circle cx="16" cy="4.9" r="0.6" fill="#7d6a42"/>
+  </svg>`,
   // 민소매: 무늬 없는 흰 나시
   tank: `<svg viewBox="0 0 32 32" aria-hidden="true">
     <path d="M10.6 4.4 Q11.2 9.4 13.4 10 Q16 10.9 18.6 10 Q20.8 9.4 21.4 4.4 L23.4 4.9 Q22.6 10.6 24.4 13.4 L24.8 28 Q16 29.3 7.2 28 L7.6 13.4 Q9.4 10.6 8.6 4.9 Z"
