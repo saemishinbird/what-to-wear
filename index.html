@@ -8,7 +8,9 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="뭐 입지">
 <meta name="theme-color" content="#12151b">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧥</text></svg>">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest">
 <style>
   :root {
     --bg: #f6f7f9; --card: #ffffff; --text: #1d2330; --muted: #6b7280;
@@ -56,7 +58,11 @@
   .outfit { border-left: 4px solid var(--oc, var(--accent)); padding-left: 16px; }
   .outfit-range { font-weight: 700; font-size: 18px; margin: 4px 0 10px; }
   .chips { display: flex; flex-wrap: wrap; gap: 6px; }
-  .chip { background: var(--soft); border-radius: 999px; padding: 5px 11px; font-size: 14px; }
+  .chip { background: var(--soft); border-radius: 999px; padding: 5px 11px; font-size: 14px;
+          display: inline-flex; align-items: center; gap: 5px; }
+  .chip .ci { font-size: 16px; line-height: 1; }
+  .outfit-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .hero { display: flex; gap: 6px; font-size: 34px; line-height: 1; }
   .tip { margin-top: 10px; font-size: 13px; color: var(--muted); }
   .umbrella {
     margin-top: 12px; padding: 10px 12px; border-radius: 10px; background: var(--rain-bg); color: var(--rain);
@@ -181,6 +187,18 @@ const OUTFITS = [
   { min: 5,    label: "5~8℃",    color: "#7a2fa0", items: ["코트", "히트텍", "니트", "청바지", "레깅스"], tip: "레이어드 필수!" },
   { min: -100, label: "4℃ 이하", color: "#2c3a8f", items: ["패딩", "두꺼운 코트", "목도리", "기모 제품"], tip: "최대한 많이 껴입자!" },
 ];
+
+/* 옷 그림 (기기의 이모지로 표시) */
+const ICONS = {
+  "민소매": "🎽", "반팔": "👕", "반바지": "🩳", "치마": "👗", "얇은 셔츠": "👔",
+  "면바지": "👖", "청바지": "👖", "얇은 가디건": "🧶", "가디건": "🧶", "긴팔티": "👚",
+  "얇은 니트": "🧶", "니트": "🧶", "맨투맨": "👚", "얇은 자켓": "🧥", "자켓": "🧥",
+  "야상": "🧥", "스타킹": "🧦", "트렌치코트": "🧥", "코트": "🧥", "히트텍": "👕",
+  "레깅스": "🧦", "패딩": "🧥", "두꺼운 코트": "🧥", "목도리": "🧣", "기모 제품": "🧤",
+};
+const icon = item => ICONS[item] || "👕";
+/* 대표 그림: 겹치지 않게 앞에서 3개 */
+const heroIcons = o => [...new Set(o.items.map(icon))].slice(0, 3);
 
 /* 기온 기준: "avg" = (최고+최저)/2, "max" = 최고기온, "min" = 최저기온 */
 const BASIS = "avg";
@@ -465,20 +483,23 @@ function render() {
     const t = basisTemp(x), o = pickOutfit(t);
     const showNow = sel === 0 && W.nowTemp != null;
     const cur = sel === 0 ? hoursFor(0)[0] : null;      // 오늘은 지금 시각의 날씨로 표시
-    const icon = cur ? cur.icon : x.icon, desc = cur ? cur.desc : x.desc;
+    const wIcon = cur ? cur.icon : x.icon, desc = cur ? cur.desc : x.desc;
     $("today").innerHTML = `
       <div>
         <div class="place">${name}</div>
         <div class="when">${sel < 2 ? dayName(x, sel) + " · " : ""}${x.d.getUTCMonth() + 1}월 ${x.d.getUTCDate()}일 ${DOW[x.d.getUTCDay()]}요일</div>
-        <div class="big">${icon} ${Math.round(showNow ? W.nowTemp : t)}°</div>
+        <div class="big">${wIcon} ${Math.round(showNow ? W.nowTemp : t)}°</div>
         <div class="sub">${showNow ? "지금 " : ""}${desc}</div>
         <div class="sub"><span class="hi">최고 ${Math.round(x.max)}°</span> / <span class="lo">최저 ${Math.round(x.min)}°</span></div>
         ${W.tz ? `<div class="sub">현지 시간 기준 · ${esc(W.tz)}</div>` : ""}
       </div>
       <div class="outfit" style="--oc:${o.color}">
         <div class="label">${sel === 0 ? "오늘" : "이날"}의 추천 옷차림 (기준 ${t.toFixed(1)}°)</div>
-        <div class="outfit-range">${o.label}</div>
-        <div class="chips">${o.items.map(i => `<span class="chip">${i}</span>`).join("")}</div>
+        <div class="outfit-head">
+          <div class="outfit-range">${o.label}</div>
+          <div class="hero">${heroIcons(o).map(e => `<span>${e}</span>`).join("")}</div>
+        </div>
+        <div class="chips">${o.items.map(i => `<span class="chip"><span class="ci">${icon(i)}</span>${i}</span>`).join("")}</div>
         ${o.tip ? `<div class="tip">💡 ${o.tip}</div>` : ""}
         ${umbrellaHtml(sel)}
       </div>`;
@@ -514,7 +535,7 @@ function render() {
         <div class="bar"><i style="left:${pct(x.min)}%;right:${100 - pct(x.max)}%"></i></div>
         <span class="hi">${Math.round(x.max)}°</span>
       </div>
-      <span class="pill" style="--oc:${o.color}">${x.rain ? "☂️ " : ""}${o.items.slice(0, 2).join(" · ")}</span>
+      <span class="pill" style="--oc:${o.color}">${x.rain ? "☂️ " : ""}${icon(o.items[0])} ${o.items.slice(0, 2).join(" · ")}</span>
     </div>`;
   }).join("");
 }
