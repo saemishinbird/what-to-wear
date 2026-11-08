@@ -183,16 +183,16 @@ const OUTFITS = [
   { min: 17,   label: "17~19℃",  color: "#e8502a", items: ["얇은 니트", "가디건", "맨투맨", "얇은 자켓", "면바지"] },
   { min: 12,   label: "12~16℃",  color: "#e0246a", items: ["자켓", "가디건", "야상", "맨투맨", "니트", "스타킹", "면바지"] },
   { min: 9,    label: "9~11℃",   color: "#b51f86", items: ["자켓", "야상", "니트", "스타킹", "면바지"], tip: "아우터 안에 가디건 필수!" },
-  { min: 5,    label: "5~8℃",    color: "#7a2fa0", items: ["코트", "히트텍", "니트", "레깅스"], tip: "레이어드 필수!" },
+  { min: 5,    label: "5~8℃",    color: "#7a2fa0", items: ["코트", "히트텍", "니트"], tip: "레이어드 필수!" },
   { min: -100, label: "4℃ 이하", color: "#2c3a8f", items: ["패딩", "두꺼운 코트", "목도리", "기모 제품"], tip: "최대한 많이 껴입자!" },
 ];
 
 /* 옷 그림: 이모지, 또는 "svg:이름"이면 아래 직접 그린 아이콘 */
 const ICONS = {
   // 상의
-  "민소매": "svg:tank", "반팔": "👕", "히트텍": "svg:thermal", "얇은 셔츠": "svg:shirt", "긴팔티": "👚", "맨투맨": "👚",
+  "민소매": "svg:tank", "반팔": "👕", "히트텍": "svg:thermal", "얇은 셔츠": "svg:shirt", "긴팔티": "svg:longsleeve", "맨투맨": "svg:sweatshirt",
   // 니트·가디건
-  "얇은 가디건": "🧶", "가디건": "🧶", "얇은 니트": "🧶", "니트": "🧶",
+  "얇은 가디건": "svg:cardigan", "가디건": "svg:cardigan", "얇은 니트": "svg:knit", "니트": "svg:knit",
   // 자켓류 (자켓은 직접 그린 회색 블레이저)
   "얇은 자켓": "svg:blazer", "자켓": "svg:blazer", "야상": "svg:field", "트렌치코트": "🧥",
   // 코트·패딩 (직접 그린 아이콘)
@@ -203,6 +203,67 @@ const ICONS = {
   "목도리": "🧣", "기모 제품": "🧤",
 };
 const SVG_ICONS = {
+  // 긴팔티: 흰 바탕 + 남색 줄무늬 긴소매
+  longsleeve: `<svg viewBox="0 0 32 32" aria-hidden="true">
+    <defs><clipPath id="ic-ls-clip">
+      <path d="M10.2 6.4 L6.8 8.2 L4.6 25.4 L7.6 25.8 L10 12.4 Z"/>
+      <path d="M21.8 6.4 L25.2 8.2 L27.4 25.4 L24.4 25.8 L22 12.4 Z"/>
+      <path d="M10.2 6 H21.8 L22.6 27.6 Q16 28.4 9.4 27.6 Z"/>
+    </clipPath></defs>
+    <g clip-path="url(#ic-ls-clip)">
+      <rect x="0" y="0" width="32" height="32" fill="#f7f8fa"/>
+      <g fill="#2f4a7a"><rect x="0" y="9" width="32" height="1.6"/><rect x="0" y="12.8" width="32" height="1.6"/>
+        <rect x="0" y="16.6" width="32" height="1.6"/><rect x="0" y="20.4" width="32" height="1.6"/><rect x="0" y="24.2" width="32" height="1.6"/></g>
+    </g>
+    <g fill="none" stroke="#a7b2c1" stroke-width="0.6">
+      <path d="M10.2 6.4 L6.8 8.2 L4.6 25.4 L7.6 25.8 L10 12.4"/>
+      <path d="M21.8 6.4 L25.2 8.2 L27.4 25.4 L24.4 25.8 L22 12.4"/>
+      <path d="M10.2 6 H21.8 L22.6 27.6 Q16 28.4 9.4 27.6 Z"/>
+    </g>
+    <path d="M12.8 6 Q16 8.8 19.2 6" fill="none" stroke="#2f4a7a" stroke-width="1"/>
+  </svg>`,
+  // 맨투맨: 회색 두툼한 스웻셔츠, 시보리(목·소매·밑단)
+  sweatshirt: `<svg viewBox="0 0 32 32" aria-hidden="true">
+    <g stroke="#7d828a" stroke-width="0.5">
+      <path d="M10 6.6 L6 8.6 Q4.4 16 4 24 L7.6 24.6 L9.8 13 Z" fill="#969ba3"/>
+      <path d="M22 6.6 L26 8.6 Q27.6 16 28 24 L24.4 24.6 L22.2 13 Z" fill="#969ba3"/>
+      <path d="M4 23.2 L7.7 23.8 L7.5 26.2 L3.8 25.6 Z" fill="#868b93"/>
+      <path d="M28 23.2 L24.3 23.8 L24.5 26.2 L28.2 25.6 Z" fill="#868b93"/>
+      <path d="M10 6.2 H22 Q23.6 15 23.2 25 H8.8 Q8.4 15 10 6.2 Z" fill="#a5aab2"/>
+      <path d="M8.8 24.6 H23.2 L23 27.8 Q16 28.6 9 27.8 Z" fill="#8c9199"/>
+    </g>
+    <path d="M12.4 6.2 Q16 10 19.6 6.2" fill="none" stroke="#8c9199" stroke-width="1.8"/>
+    <g stroke="#7a7f87" stroke-width="0.4"><path d="M11 25.2 V27.6"/><path d="M13 25.2 V27.9"/><path d="M15 25.2 V28"/><path d="M17 25.2 V28"/><path d="M19 25.2 V27.9"/><path d="M21 25.2 V27.6"/></g>
+  </svg>`,
+  // 가디건: 검은색, V넥 사이로 흰 이너, 단추
+  cardigan: `<svg viewBox="0 0 32 32" aria-hidden="true">
+    <g fill="#26292f" stroke="#5a606b" stroke-width="0.6">
+      <path d="M10 6.4 L6.6 8.4 L4.6 25 L7.6 25.4 L9.9 12.6 Z"/>
+      <path d="M22 6.4 L25.4 8.4 L27.4 25 L24.4 25.4 L22.1 12.6 Z"/>
+      <path d="M10 6 H22 L22.8 27.4 Q16 28.2 9.2 27.4 Z" fill="#2c2f36"/>
+    </g>
+    <path d="M12.6 6 L16 16.4 L19.4 6 Z" fill="#eef1f5"/>
+    <g fill="none" stroke="#474b54" stroke-width="1.1"><path d="M12.6 6 L16 16.4 L19.4 6"/><path d="M16 16.4 V27.8"/></g>
+    <path d="M9.4 26 H22.6" stroke="#474b54" stroke-width="0.6"/>
+    <g fill="#c9ced6"><circle cx="16" cy="19.2" r="0.7"/><circle cx="16" cy="22.2" r="0.7"/><circle cx="16" cy="25.2" r="0.7"/></g>
+  </svg>`,
+  // 니트: 흰(크림)색 꽈배기 니트
+  knit: `<svg viewBox="0 0 32 32" aria-hidden="true">
+    <g stroke="#b8ad98" stroke-width="0.6">
+      <path d="M10 6.6 L6.4 8.6 Q4.6 16 4.4 24.4 L7.8 25 L9.9 13 Z" fill="#ece6da"/>
+      <path d="M22 6.6 L25.6 8.6 Q27.4 16 27.6 24.4 L24.2 25 L22.1 13 Z" fill="#ece6da"/>
+      <path d="M10 6.2 H22 Q23.4 15 23 25.6 H9 Q8.6 15 10 6.2 Z" fill="#f6f2ea"/>
+      <path d="M9 25.2 H23 L22.8 28 Q16 28.8 9.2 28 Z" fill="#e6dfd0"/>
+    </g>
+    <path d="M12.6 6.2 Q16 9.6 19.4 6.2" fill="none" stroke="#d6ccb9" stroke-width="1.8"/>
+    <g fill="none" stroke="#c8b99d" stroke-width="0.7">
+      <path d="M13 10.4 q1.2 1.5 0 3 q-1.2 1.5 0 3 q1.2 1.5 0 3 q-1.2 1.5 0 3"/>
+      <path d="M13 10.4 q-1.2 1.5 0 3 q1.2 1.5 0 3 q-1.2 1.5 0 3 q1.2 1.5 0 3"/>
+      <path d="M19 10.4 q1.2 1.5 0 3 q-1.2 1.5 0 3 q1.2 1.5 0 3 q-1.2 1.5 0 3"/>
+      <path d="M19 10.4 q-1.2 1.5 0 3 q1.2 1.5 0 3 q-1.2 1.5 0 3 q1.2 1.5 0 3"/>
+      <path d="M16 9.6 V24.6" stroke-dasharray="0.8 0.8"/>
+    </g>
+  </svg>`,
   // 면바지: 베이지 치노, 허리밴드 + 사선 주머니 + 앞주름
   chino: `<svg viewBox="0 0 32 32" aria-hidden="true">
     <path d="M9 6.2 H23 L24 29 H17.4 L16 13.4 L14.6 29 H8 Z" fill="#cfba8f" stroke="#a8925f" stroke-width="0.6"/>
