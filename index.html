@@ -61,8 +61,6 @@
   .chip { background: var(--soft); border-radius: 999px; padding: 5px 11px; font-size: 14px;
           display: inline-flex; align-items: center; gap: 5px; }
   .chip .ci { font-size: 16px; line-height: 1; }
-  .outfit-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-  .hero { display: flex; gap: 6px; font-size: 34px; line-height: 1; }
   .tip { margin-top: 10px; font-size: 13px; color: var(--muted); }
   .umbrella {
     margin-top: 12px; padding: 10px 12px; border-radius: 10px; background: var(--rain-bg); color: var(--rain);
@@ -197,8 +195,6 @@ const ICONS = {
   "레깅스": "🧦", "패딩": "🧥", "두꺼운 코트": "🧥", "목도리": "🧣", "기모 제품": "🧤",
 };
 const icon = item => ICONS[item] || "👕";
-/* 대표 그림: 겹치지 않게 앞에서 3개 */
-const heroIcons = o => [...new Set(o.items.map(icon))].slice(0, 3);
 
 /* 기온 기준: "avg" = (최고+최저)/2, "max" = 최고기온, "min" = 최저기온 */
 const BASIS = "avg";
@@ -495,10 +491,7 @@ function render() {
       </div>
       <div class="outfit" style="--oc:${o.color}">
         <div class="label">${sel === 0 ? "오늘" : "이날"}의 추천 옷차림 (기준 ${t.toFixed(1)}°)</div>
-        <div class="outfit-head">
-          <div class="outfit-range">${o.label}</div>
-          <div class="hero">${heroIcons(o).map(e => `<span>${e}</span>`).join("")}</div>
-        </div>
+        <div class="outfit-range">${o.label}</div>
         <div class="chips">${o.items.map(i => `<span class="chip"><span class="ci">${icon(i)}</span>${i}</span>`).join("")}</div>
         ${o.tip ? `<div class="tip">💡 ${o.tip}</div>` : ""}
         ${umbrellaHtml(sel)}
