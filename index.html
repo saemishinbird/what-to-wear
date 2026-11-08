@@ -530,22 +530,26 @@ const DEFAULTS = [
   { name: "송파구", sub: "서울특별시", lat: 37.5145, lon: 127.1059, cc: "KR" },
   { name: "강남구", sub: "서울특별시", lat: 37.5172, lon: 127.0473, cc: "KR" },
 ];
-const RECENT_DAYS = 7, RECENT_MAX = 10;
+const RECENT_DAYS = 7, RECENT_MAX = 5;   // 최근 7일 안에 검색한 곳 중 최근 5개
 const sameP = (a, b) => !!a && !!b && a.name === b.name && a.sub === b.sub;
 const isDefault = p => DEFAULTS.some(d => sameP(d, p));
 
 // recent: [{name, sub, lat, lon, cc, ts}]  — 7일 지난 건 자동 삭제
-let recent = store.get("recent", []).filter(p => p && !isDefault(p) && Date.now() - p.ts < RECENT_DAYS * 864e5);
+let recent = store.get("recent", []).filter(p => p && !isDefault(p) && Date.now() - p.ts < RECENT_DAYS * 864e5)
+  .slice(0, RECENT_MAX);
 store.set("recent", recent);
 let current = store.get("current", null);            // 마지막으로 본 지역 (null = 기본 첫 번째)
 if (current && !isDefault(current) && !recent.some(r => sameP(r, current))) current = null;
 
 const toPlace = p => { p = p || DEFAULTS[0]; return makePlace(p.name, p.lat, p.lon, p.cc); };
 
+let hereActive = false;   // 📍 내 위치를 보고 있는 중 (최근 검색에는 저장 안 함)
+
 function renderSelect() {
-  const cur = current || DEFAULTS[0];
+  const cur = hereActive ? null : current || DEFAULTS[0];
   const opt = (v, t, on) => `<option value="${v}" ${on ? "selected" : ""}>${esc(t)}</option>`;
   $("city").innerHTML =
+    (hereActive ? opt("here", "📍 내 위치", true) : "") +
     DEFAULTS.map((d, i) => opt("d:" + i, d.name, sameP(d, cur))).join("") +
     (recent.length ? `<optgroup label="최근 검색">${recent.map((r, i) => opt("r:" + i, r.name, sameP(r, cur))).join("")}</optgroup>` : "") +
     `<option value="add">🔍 지역 검색…</option>`;
@@ -562,7 +566,7 @@ function use(p) {                                     // p = 지역 정보, null
     recent = [p, ...recent.filter(r => !sameP(r, p))].slice(0, RECENT_MAX);
     store.set("recent", recent);
   }
-  current = p; store.set("current", p);
+  current = p; store.set("current", p); hereActive = false;
   renderSelect(); load(toPlace(p));
 }
 
@@ -573,6 +577,7 @@ function openSearch() {
 $("city").addEventListener("change", e => {
   const v = e.target.value;
   if (v === "add") { renderSelect(); return openSearch(); }
+  if (v === "here") return;
   use(v.startsWith("d:") ? DEFAULTS[+v.slice(2)] : recent[+v.slice(2)]);
 });
 
@@ -641,7 +646,10 @@ $("keyBtn").addEventListener("click", () => showKeyForm());
 $("geo").addEventListener("click", () => {
   if (!navigator.geolocation) return alert("이 브라우저는 위치를 지원하지 않아요");
   navigator.geolocation.getCurrentPosition(
-    p => load(makePlace("내 위치", p.coords.latitude, p.coords.longitude)),
+    p => {
+      hereActive = true; renderSelect();
+      load(makePlace("내 위치", p.coords.latitude, p.coords.longitude));
+    },
     () => alert("위치 권한이 거부됐어요"));
 });
 
