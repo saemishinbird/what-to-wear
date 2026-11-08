@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0.35" y2="1">
+      <stop offset="0" stop-color="#f7c600"/>
+      <stop offset="0.35" stop-color="#f07a1a"/>
+      <stop offset="0.65" stop-color="#e0246a"/>
+      <stop offset="1" stop-color="#2c3a8f"/>
+    </linearGradient>
+    <filter id="sh" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="10" stdDeviation="12" flood-color="#000" flood-opacity="0.25"/>
+    </filter>
+  </defs>
+  <rect width="512" height="512" fill="url(#bg)"/>
+  <!-- 티셔츠 -->
+  <path filter="url(#sh)" fill="#fff"
+        d="M186 118 L134 138 L68 202 L122 262 L164 232 L164 398 Q164 414 180 414 L332 414 Q348 414 348 398
+           L348 232 L390 262 L444 202 L378 138 L326 118 Q312 166 256 166 Q200 166 186 118 Z"/>
+  <!-- 온도계 -->
+  <rect x="242" y="214" width="28" height="118" rx="14" fill="#e0246a" opacity="0.18"/>
+  <rect x="249" y="250" width="14" height="82" rx="7" fill="#e0246a"/>
+  <circle cx="256" cy="344" r="24" fill="#e0246a"/>
+</svg>
