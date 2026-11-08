@@ -60,7 +60,8 @@
   .chips { display: flex; flex-wrap: wrap; gap: 6px; }
   .chip { background: var(--soft); border-radius: 999px; padding: 5px 11px; font-size: 14px;
           display: inline-flex; align-items: center; gap: 5px; }
-  .chip .ci { font-size: 16px; line-height: 1; }
+  .chip .ci { font-size: 16px; line-height: 1; display: inline-flex; }
+  .chip .ci svg { width: 19px; height: 19px; display: block; }
   .tip { margin-top: 10px; font-size: 13px; color: var(--muted); }
   .umbrella {
     margin-top: 12px; padding: 10px 12px; border-radius: 10px; background: var(--rain-bg); color: var(--rain);
@@ -178,23 +179,61 @@
 const OUTFITS = [
   { min: 28,   label: "28℃ 이상", color: "#f2c200", items: ["민소매", "반팔", "반바지", "치마"] },
   { min: 23,   label: "23~27℃",  color: "#f5a000", items: ["반팔", "얇은 셔츠", "반바지", "면바지"] },
-  { min: 20,   label: "20~22℃",  color: "#f07a1a", items: ["얇은 가디건", "긴팔티", "면바지", "청바지"] },
-  { min: 17,   label: "17~19℃",  color: "#e8502a", items: ["얇은 니트", "가디건", "맨투맨", "얇은 자켓", "면바지", "청바지"] },
-  { min: 12,   label: "12~16℃",  color: "#e0246a", items: ["자켓", "가디건", "야상", "맨투맨", "니트", "스타킹", "청바지", "면바지"] },
-  { min: 9,    label: "9~11℃",   color: "#b51f86", items: ["자켓", "트렌치코트", "야상", "니트", "스타킹", "청바지", "면바지"], tip: "아우터 안에 가디건 필수!" },
-  { min: 5,    label: "5~8℃",    color: "#7a2fa0", items: ["코트", "히트텍", "니트", "청바지", "레깅스"], tip: "레이어드 필수!" },
+  { min: 20,   label: "20~22℃",  color: "#f07a1a", items: ["얇은 가디건", "긴팔티", "면바지"] },
+  { min: 17,   label: "17~19℃",  color: "#e8502a", items: ["얇은 니트", "가디건", "맨투맨", "얇은 자켓", "면바지"] },
+  { min: 12,   label: "12~16℃",  color: "#e0246a", items: ["자켓", "가디건", "야상", "맨투맨", "니트", "스타킹", "면바지"] },
+  { min: 9,    label: "9~11℃",   color: "#b51f86", items: ["자켓", "야상", "니트", "스타킹", "면바지"], tip: "아우터 안에 가디건 필수!" },
+  { min: 5,    label: "5~8℃",    color: "#7a2fa0", items: ["코트", "히트텍", "니트", "레깅스"], tip: "레이어드 필수!" },
   { min: -100, label: "4℃ 이하", color: "#2c3a8f", items: ["패딩", "두꺼운 코트", "목도리", "기모 제품"], tip: "최대한 많이 껴입자!" },
 ];
 
-/* 옷 그림 (기기의 이모지로 표시) */
+/* 옷 그림: 이모지, 또는 "svg:이름"이면 아래 직접 그린 아이콘 */
 const ICONS = {
-  "민소매": "🎽", "반팔": "👕", "반바지": "🩳", "치마": "👗", "얇은 셔츠": "👔",
-  "면바지": "👖", "청바지": "👖", "얇은 가디건": "🧶", "가디건": "🧶", "긴팔티": "👚",
-  "얇은 니트": "🧶", "니트": "🧶", "맨투맨": "👚", "얇은 자켓": "🧥", "자켓": "🧥",
-  "야상": "🧥", "스타킹": "🧦", "트렌치코트": "🧥", "코트": "🧥", "히트텍": "👕",
-  "레깅스": "🧦", "패딩": "🧥", "두꺼운 코트": "🧥", "목도리": "🧣", "기모 제품": "🧤",
+  // 상의
+  "민소매": "🎽", "반팔": "👕", "히트텍": "👕", "얇은 셔츠": "👔", "긴팔티": "👚", "맨투맨": "👚",
+  // 니트·가디건
+  "얇은 가디건": "🧶", "가디건": "🧶", "얇은 니트": "🧶", "니트": "🧶",
+  // 자켓류
+  "얇은 자켓": "🧥", "자켓": "🧥", "야상": "🧥", "트렌치코트": "🧥",
+  // 코트·패딩 (직접 그린 아이콘)
+  "코트": "svg:coat", "두꺼운 코트": "svg:coat", "패딩": "svg:padding",
+  // 하의
+  "반바지": "🩳", "치마": "👗", "면바지": "👖", "청바지": "👖", "스타킹": "🧦", "레깅스": "🧦",
+  // 소품
+  "목도리": "🧣", "기모 제품": "🧤",
 };
-const icon = item => ICONS[item] || "👕";
+const SVG_ICONS = {
+  // 무릎까지 오는 카멜색 코트: 라펠 + 단추
+  coat: `<svg viewBox="0 0 32 32" aria-hidden="true">
+    <path d="M10 5 L5 9 L3 23 L7 24 L9 13 Z" fill="#a8743f"/>
+    <path d="M22 5 L27 9 L29 23 L25 24 L23 13 Z" fill="#a8743f"/>
+    <path d="M10 5 L22 5 L24.5 30 L7.5 30 Z" fill="#c58d55"/>
+    <path d="M13.5 5 L16 11 L18.5 5 Z" fill="#f2e6d6"/>
+    <path d="M10 5 L13.5 5 L16 11 L14.5 16 L11 9 Z" fill="#9c6633"/>
+    <path d="M22 5 L18.5 5 L16 11 L17.5 16 L21 9 Z" fill="#9c6633"/>
+    <line x1="16" y1="16" x2="16" y2="30" stroke="#9c6633" stroke-width="0.8"/>
+    <circle cx="18.2" cy="19" r="1.1" fill="#5b3a1e"/><circle cx="18.2" cy="24" r="1.1" fill="#5b3a1e"/>
+    <circle cx="13.8" cy="19" r="1.1" fill="#5b3a1e"/><circle cx="13.8" cy="24" r="1.1" fill="#5b3a1e"/>
+  </svg>`,
+  // 남색 숏패딩: 누빔 줄 + 지퍼 + 목 카라
+  padding: `<svg viewBox="0 0 32 32" aria-hidden="true">
+    <rect x="2.5" y="9" width="7" height="17" rx="3.5" fill="#24418f"/>
+    <rect x="22.5" y="9" width="7" height="17" rx="3.5" fill="#24418f"/>
+    <rect x="7" y="6.5" width="18" height="22" rx="4.5" fill="#2f55b5"/>
+    <rect x="10.5" y="3" width="11" height="6" rx="3" fill="#24418f"/>
+    <g stroke="#1b3272" stroke-width="1.2" stroke-linecap="round">
+      <line x1="7.5" y1="12.5" x2="24.5" y2="12.5"/><line x1="7.5" y1="18" x2="24.5" y2="18"/>
+      <line x1="7.5" y1="23.5" x2="24.5" y2="23.5"/>
+      <line x1="3" y1="15" x2="9" y2="15"/><line x1="3" y1="20.5" x2="9" y2="20.5"/>
+      <line x1="23" y1="15" x2="29" y2="15"/><line x1="23" y1="20.5" x2="29" y2="20.5"/>
+    </g>
+    <line x1="16" y1="7" x2="16" y2="28.5" stroke="#cfd9f5" stroke-width="1.2"/>
+  </svg>`,
+};
+const icon = item => {
+  const v = ICONS[item] || "👕";
+  return v.startsWith("svg:") ? SVG_ICONS[v.slice(4)] : v;
+};
 
 /* 기온 기준: "avg" = (최고+최저)/2, "max" = 최고기온, "min" = 최저기온 */
 const BASIS = "avg";
@@ -528,7 +567,7 @@ function render() {
         <div class="bar"><i style="left:${pct(x.min)}%;right:${100 - pct(x.max)}%"></i></div>
         <span class="hi">${Math.round(x.max)}°</span>
       </div>
-      <span class="pill" style="--oc:${o.color}">${x.rain ? "☂️ " : ""}${icon(o.items[0])} ${o.items.slice(0, 2).join(" · ")}</span>
+      <span class="pill" style="--oc:${o.color}">${x.rain ? "☂️ " : ""}${o.items.slice(0, 2).join(" · ")}</span>
     </div>`;
   }).join("");
 }
