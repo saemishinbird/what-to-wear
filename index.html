@@ -580,7 +580,10 @@ async function searchPlaces(q) {
     fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${enc}&count=8&language=ko&format=json`).then(r => r.json()),
   ]);
   const out = [];
+  // 가게·식당·회사 같은 건 빼고 지역/역/공원 등만
+  const SKIP = ["amenity", "shop", "office", "craft", "healthcare", "emergency", "club", "building"];
   if (kr.status === "fulfilled") for (const p of kr.value) {
+    if (SKIP.includes(p.category)) continue;
     const a = p.address || {};
     let name = p.name || p.display_name.split(",")[0];
     if (p.category === "railway" && !name.endsWith("역")) name += "역";
