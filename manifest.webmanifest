@@ -1,0 +1,14 @@
+{
+  "name": "오늘 뭐 입지",
+  "short_name": "뭐 입지",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#12151b",
+  "theme_color": "#12151b",
+  "icons": [
+    { "src": "apple-touch-icon.png", "sizes": "180x180", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml" }
+  ]
+}
