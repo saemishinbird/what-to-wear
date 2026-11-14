@@ -38,7 +38,8 @@
     font: inherit; font-size: 14px; padding: 8px 12px; border-radius: 8px;
     border: 1px solid var(--line); background: var(--card); color: var(--text); cursor: pointer;
   }
-  select { max-width: 170px; }
+  select { max-width: 170px; min-width: 0; flex: 0 1 auto; }
+  .controls button { flex: none; }
   #refresh { font-size: 17px; line-height: 1; padding: 8px 11px; }
   #refresh.spin { animation: spin .8s linear infinite; opacity: .6; }
   @keyframes spin { to { transform: rotate(360deg); } }
@@ -155,6 +156,7 @@
       <select id="city" aria-label="도시"></select>
       <button id="refresh" title="새로고침" aria-label="새로고침">↻</button>
       <button id="geo" title="현재 위치 사용" aria-label="현재 위치">📍</button>
+      <button id="guideBtn" title="기온별 옷차림표" aria-label="기온별 옷차림표">📋</button>
       <button id="keyBtn" title="인증키 설정" aria-label="인증키 설정">⚙️</button>
     </div>
   </header>
@@ -692,6 +694,7 @@ function render() {
     $("today").innerHTML = `<div class="sub">${dateStr(x)} 예보가 아직 없어요.</div>`;
   } else {
     const t = basisTemp(x), o = pickOutfit(t);
+    guideMin = o.min;                                  // 옷차림표에서 강조할 구간
     const showNow = sel === 0 && W.nowTemp != null;
     const cur = sel === 0 ? hoursFor(0)[0] : null;      // 오늘은 지금 시각의 날씨로 표시
     const wIcon = cur ? cur.icon : x.icon, desc = cur ? cur.desc : x.desc;
@@ -706,8 +709,7 @@ function render() {
       </div>
       <div class="outfit" style="--oc:${o.color}">
         <div class="label">${sel === 0 ? "오늘" : "이날"}의 추천 옷차림 (기준 ${t.toFixed(1)}°)</div>
-        <div class="outfit-head"><span class="outfit-range">${o.label}</span>
-          <button type="button" class="guide-btn" data-guide="${o.min}">📋 기온별 옷차림표</button></div>
+        <div class="outfit-head"><span class="outfit-range">${o.label}</span></div>
         <div class="chips">${o.items.map(i => `<span class="chip"><span class="ci">${icon(i)}</span>${i}</span>`).join("")}</div>
         ${o.tip ? `<div class="tip">💡 ${o.tip}</div>` : ""}
         ${umbrellaHtml(sel)}
@@ -874,6 +876,8 @@ $("searchClose").addEventListener("click", () => { $("searchCard").hidden = true
 
 $("keyBtn").addEventListener("click", () => showKeyForm());
 /* 기온별 옷차림표 팝업 (지금 보고 있는 구간은 강조) */
+let guideMin = null;
+$("guideBtn").addEventListener("click", () => openGuide(guideMin));
 function openGuide(nowMin) {
   $("guideBody").innerHTML = OUTFITS.map(o => `
     <div class="g-row${o.min === nowMin ? " now" : ""}" style="--oc:${o.color}">
