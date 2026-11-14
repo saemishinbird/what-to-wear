@@ -59,7 +59,25 @@
   .when { font-size: 16px; font-weight: 500; margin: 4px 0 14px; }
   .big { font-size: 48px; font-weight: 700; line-height: 1; }
   .outfit { border-left: 4px solid var(--oc, var(--accent)); padding-left: 16px; }
-  .outfit-range { font-weight: 700; font-size: 18px; margin: 4px 0 10px; }
+  .outfit-range { font-weight: 700; font-size: 18px; }
+  .outfit-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; margin: 4px 0 10px; }
+  .guide-btn { font-size: 12px; padding: 5px 10px; border-radius: 999px; color: var(--muted); white-space: nowrap; }
+  dialog#guide { width: min(520px, calc(100vw - 32px)); max-height: calc(100dvh - 48px); padding: 0;
+    border: 1px solid var(--line); border-radius: 16px; background: var(--card); color: var(--text); }
+  dialog#guide::backdrop { background: rgba(0,0,0,.45); }
+  .g-head { position: sticky; top: 0; background: var(--card); display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 18px 10px; border-bottom: 1px solid var(--line); z-index: 1; }
+  .g-head b { font-size: 18px; }
+  .g-head button { padding: 6px 12px; }
+  .g-body { padding: 6px 18px 18px; }
+  .g-row { display: grid; grid-template-columns: 86px 1fr; gap: 12px; padding: 12px 0 12px 10px;
+    border-left: 4px solid var(--oc); border-bottom: 1px solid var(--line); }
+  .g-row:last-of-type { border-bottom: 0; }
+  .g-row.now { background: var(--soft); border-radius: 0 10px 10px 0; }
+  .g-row .g-t { font-weight: 700; color: var(--oc); font-size: 15px; }
+  .g-row .g-t small { display: block; font-weight: 600; font-size: 11px; color: var(--muted); margin-top: 3px; }
+  .g-row .tip { margin-top: 6px; }
+  .g-note { color: var(--muted); font-size: 12px; margin-top: 12px; line-height: 1.6; }
   .chips { display: flex; flex-wrap: wrap; gap: 6px; }
   .chip { background: var(--soft); border-radius: 999px; padding: 5px 11px; font-size: 14px;
           display: inline-flex; align-items: center; gap: 5px; }
@@ -175,6 +193,11 @@
     옷차림 기준 = 그날 (최고+최저)/2 기온 · 참고: FLIR "기온별 옷차림"
   </div>
 </main>
+
+<dialog id="guide" aria-label="기온별 옷차림표">
+  <div class="g-head"><b>기온별 옷차림표</b><button type="button" id="guideClose">닫기</button></div>
+  <div class="g-body" id="guideBody"></div>
+</dialog>
 
 <script>
 /* =========================================================
@@ -664,7 +687,8 @@ function render() {
       </div>
       <div class="outfit" style="--oc:${o.color}">
         <div class="label">${sel === 0 ? "오늘" : "이날"}의 추천 옷차림 (기준 ${t.toFixed(1)}°)</div>
-        <div class="outfit-range">${o.label}</div>
+        <div class="outfit-head"><span class="outfit-range">${o.label}</span>
+          <button type="button" class="guide-btn" data-guide="${o.min}">📋 기온별 옷차림표</button></div>
         <div class="chips">${o.items.map(i => `<span class="chip"><span class="ci">${icon(i)}</span>${i}</span>`).join("")}</div>
         ${o.tip ? `<div class="tip">💡 ${o.tip}</div>` : ""}
         ${umbrellaHtml(sel)}
@@ -830,6 +854,26 @@ $("savedList").addEventListener("click", e => {
 $("searchClose").addEventListener("click", () => { $("searchCard").hidden = true; });
 
 $("keyBtn").addEventListener("click", () => showKeyForm());
+/* 기온별 옷차림표 팝업 (지금 보고 있는 구간은 강조) */
+function openGuide(nowMin) {
+  $("guideBody").innerHTML = OUTFITS.map(o => `
+    <div class="g-row${o.min === nowMin ? " now" : ""}" style="--oc:${o.color}">
+      <div class="g-t">${o.label}${o.min === nowMin ? "<small>지금 여기</small>" : ""}</div>
+      <div>
+        <div class="chips">${o.items.map(i => `<span class="chip"><span class="ci">${icon(i)}</span>${i}</span>`).join("")}</div>
+        ${o.tip ? `<div class="tip">💡 ${o.tip}</div>` : ""}
+      </div>
+    </div>`).join("") +
+    `<div class="g-note">기준 기온 = 그날 (최고+최저)/2 · 참고: FLIR "기온별 옷차림"</div>`;
+  const d = $("guide");
+  d.showModal();
+  d.querySelector(".g-row.now")?.scrollIntoView({ block: "center" });
+}
+$("today").addEventListener("click", e => {
+  const b = e.target.closest("[data-guide]"); if (b) openGuide(+b.dataset.guide);
+});
+$("guideClose").addEventListener("click", () => $("guide").close());
+$("guide").addEventListener("click", e => { if (e.target === $("guide")) $("guide").close(); });  // 바깥 누르면 닫기
 $("refresh").addEventListener("click", async () => {
   const b = $("refresh"); if (b.disabled) return;
   b.disabled = true; b.classList.add("spin");
